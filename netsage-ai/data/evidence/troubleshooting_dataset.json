@@ -1,0 +1,2752 @@
+{
+  "dataset_name": "NetSage AI Troubleshooting Evidence Dataset",
+  "version": "1.0.0",
+  "description": "Structured evidence and expected troubleshooting paths for Cisco-style network troubleshooting cases.",
+  "cases": [
+    {
+      "case_id": "RTR-001",
+      "title": "Missing Route",
+      "domain": "Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "PC-01 can reach its default gateway but cannot reach Server-01 on another network.",
+        "topology": "PC-01 -> SW-01 -> R1 -> Server-01",
+        "devices": ["PC-01", "SW-01", "R1", "Server-01"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "gateway": "192.168.10.1"
+        },
+        "destination": {
+          "device": "Server-01",
+          "network": "192.168.30.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot reach Server-01."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": ["routing", "ACL", "VLAN", "interface"],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip route",
+          "reason": "Determine whether R1 has a route to the destination network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip route",
+          "output_contains": "192.168.30.0/24 is absent",
+          "interpretation": "R1 has no route to the destination network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_route",
+        "confidence": "high",
+        "explanation": "The routing table does not contain a route to the destination network."
+      },
+
+      "recommended_fix": {
+        "description": "Configure or restore the appropriate route according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "R1 has a valid route to 192.168.30.0/24 and PC-01 can reach Server-01."
+      }
+    },
+    {
+      "case_id": "IP-001",
+      "title": "Wrong IP Address",
+      "domain": "IP Addressing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 cannot communicate with other devices on its local network.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "subnet_mask": "255.255.255.0",
+          "gateway": "192.168.10.1"
+        },
+        "network": {
+          "network": "192.168.10.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot communicate with other devices on its local network."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "PC-01 is configured with IP address 192.168.20.20 and gateway 192.168.10.1."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "wrong_ip_address",
+          "wrong_subnet_mask",
+          "wrong_default_gateway",
+          "interface"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "reason": "Verify the endpoint IP address, subnet mask, and default gateway against the intended network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "output_contains": "192.168.20.20",
+          "interpretation": "The PC has an IP address from the wrong network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wrong_ip_address",
+        "confidence": "high",
+        "explanation": "PC-01 is configured with an address from 192.168.20.0/24 even though it is intended to belong to 192.168.10.0/24."
+      },
+
+      "recommended_fix": {
+        "description": "Configure PC-01 with an IP address belonging to the intended network, such as 192.168.10.20.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 has a valid address in 192.168.10.0/24 and can communicate with devices on the local network."
+      }
+    },
+    {
+      "case_id": "IP-002",
+      "title": "Wrong Subnet Mask",
+      "domain": "IP Addressing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 cannot reliably communicate with devices that should belong to the same network.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "subnet_mask": "255.255.255.0"
+        },
+        "network": {
+          "network": "192.168.10.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot reliably reach devices that should belong to the same network."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "PC-01 has IP address 192.168.10.20 with subnet mask 255.255.0.0."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "wrong_subnet_mask",
+          "wrong_ip_address",
+          "wrong_default_gateway"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "reason": "Verify that the subnet mask matches the intended network design."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "output_contains": "255.255.0.0",
+          "interpretation": "The configured subnet mask is broader than the intended /24 network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wrong_subnet_mask",
+        "confidence": "high",
+        "explanation": "PC-01 uses 255.255.0.0 instead of the intended 255.255.255.0 subnet mask."
+      },
+
+      "recommended_fix": {
+        "description": "Configure PC-01 with subnet mask 255.255.255.0.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 correctly identifies the intended local network and can communicate with the expected devices."
+      }
+    },
+    {
+      "case_id": "IP-003",
+      "title": "Wrong Default Gateway",
+      "domain": "IP Addressing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 can communicate with devices on its local subnet but cannot reach devices on other networks.",
+        "topology": "PC-01 -> SW-01 -> R1 -> Remote Network",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "subnet_mask": "255.255.255.0",
+          "gateway": "192.168.10.1"
+        },
+        "network": {
+          "network": "192.168.10.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 can reach local devices but cannot reach remote networks."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "PC-01 is configured with default gateway 192.168.20.1 instead of 192.168.10.1."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "wrong_default_gateway",
+          "routing",
+          "ACL",
+          "interface"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "reason": "Verify that the configured default gateway belongs to the PC's local network and matches the intended gateway."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "output_contains": "Default Gateway: 192.168.20.1",
+          "interpretation": "The configured gateway does not match the intended gateway 192.168.10.1."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wrong_default_gateway",
+        "confidence": "high",
+        "explanation": "PC-01 uses a gateway outside its intended 192.168.10.0/24 network."
+      },
+
+      "recommended_fix": {
+        "description": "Configure PC-01 to use default gateway 192.168.10.1.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 can reach 192.168.10.1 and then communicate with destinations on remote networks."
+      }
+    },
+    {
+      "case_id": "IP-004",
+      "title": "Duplicate IP Address",
+      "domain": "IP Addressing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "PC-01 intermittently loses connectivity or communication with another device using the same IP address is inconsistent.",
+        "topology": "PC-01 -> SW-01 <- PC-02",
+        "devices": ["PC-01", "PC-02", "SW-01"]
+      },
+
+      "expected_state": {
+        "devices": [
+          {
+            "device": "PC-01",
+            "ip": "192.168.10.20"
+          },
+          {
+            "device": "PC-02",
+            "ip": "192.168.10.21"
+          }
+        ],
+        "network": {
+          "network": "192.168.10.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "Connectivity is intermittent."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "PC-01 uses 192.168.10.20."
+        },
+        {
+          "device": "PC-02",
+          "type": "configuration",
+          "description": "PC-02 also uses 192.168.10.20."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": ["duplicate_ip", "interface", "switching"],
+        "next_command": {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "reason": "Compare endpoint IP configurations and determine whether the same address is assigned to multiple devices."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "ipconfig",
+          "output_contains": "192.168.10.20",
+          "interpretation": "PC-01 uses 192.168.10.20."
+        },
+        {
+          "device": "PC-02",
+          "command": "ipconfig",
+          "output_contains": "192.168.10.20",
+          "interpretation": "PC-02 uses the same IP address."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "duplicate_ip",
+        "confidence": "high",
+        "explanation": "PC-01 and PC-02 are configured with the same IPv4 address."
+      },
+
+      "recommended_fix": {
+        "description": "Assign a unique IP address to one of the devices while keeping it within the intended subnet.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "Each device has a unique IP address and both devices can communicate normally."
+      }
+    },
+    {
+      "case_id": "CON-001",
+      "title": "Interface Administratively Down",
+      "domain": "Interfaces & Connectivity",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 cannot communicate with the network.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "interface": {
+          "device": "R1",
+          "name": "GigabitEthernet0/0",
+          "ip": "192.168.10.1",
+          "status": "up",
+          "protocol": "up"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot communicate with the network."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "interface_down",
+          "physical_link",
+          "vlan",
+          "ip_address"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "reason": "Determine whether the router interface connected to the local network is operational."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "output_contains": "administratively down",
+          "interpretation": "The interface has been administratively disabled."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "interface_administratively_down",
+        "confidence": "high",
+        "explanation": "The affected router interface is administratively disabled."
+      },
+
+      "recommended_fix": {
+        "description": "Enter the affected interface configuration and enable it with no shutdown.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The interface reports up/up and PC-01 can reach its default gateway."
+      }
+    },
+    {
+      "case_id": "CON-002",
+      "title": "Physical or Link Connectivity Failure",
+      "domain": "Interfaces & Connectivity",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 cannot reach the network even though its IP configuration appears correct.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "link": {
+          "source": "PC-01",
+          "destination": "SW-01",
+          "status": "operational"
+        },
+        "interface": {
+          "device": "SW-01",
+          "status": "up",
+          "protocol": "up"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot reach the network."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "SW-01",
+          "type": "interface_status",
+          "description": "The interface connected to PC-01 reports down/down."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "physical_link",
+          "interface_down",
+          "vlan",
+          "ip_address"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces status",
+          "reason": "Determine whether the switch port connected to the endpoint has an operational link."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces status",
+          "output_contains": "notconnect",
+          "interpretation": "The switch port does not have an operational physical link."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "physical_link_failure",
+        "confidence": "medium",
+        "explanation": "The endpoint-facing switch port has no operational link, indicating a possible cable, port, or physical connectivity problem."
+      },
+
+      "recommended_fix": {
+        "description": "Restore the physical connection or correct the affected port/link configuration.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The switch port reports an operational link and PC-01 can communicate with the network."
+      }
+    },
+    {
+      "case_id": "CON-003",
+      "title": "Interface Protocol Down",
+      "domain": "Interfaces & Connectivity",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "A router interface has an IP address configured, but devices connected through it cannot communicate.",
+        "topology": "LAN -> R1",
+        "devices": ["R1", "Neighboring Device"]
+      },
+
+      "expected_state": {
+        "interface": {
+          "device": "R1",
+          "name": "GigabitEthernet0/1",
+          "ip": "192.168.20.1",
+          "status": "up",
+          "protocol": "up"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "R1",
+          "type": "interface_status",
+          "description": "The interface has an IP address but reports up/down."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "R1",
+          "type": "interface_status",
+          "description": "GigabitEthernet0/1 reports up/down."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "interface_protocol_down",
+          "physical_link",
+          "neighboring_interface",
+          "configuration"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "reason": "Separate an interface that is administratively disabled from one whose physical layer is up but protocol is down."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "output_contains": "up",
+          "interpretation": "The physical interface is up, but the line protocol is down."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "interface_protocol_down",
+        "confidence": "medium",
+        "explanation": "The interface is physically up but its line protocol is down, indicating an underlying Layer 1 or Layer 2 connectivity problem."
+      },
+
+      "recommended_fix": {
+        "description": "Investigate and restore the underlying link or neighboring interface configuration.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The interface reports up/up and connectivity through the interface is restored."
+      }
+    },
+    {
+      "case_id": "CON-004",
+      "title": "Unreachable Default Gateway",
+      "domain": "Interfaces & Connectivity",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 has a valid IP address and default gateway configured, but it cannot ping its gateway.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "subnet_mask": "255.255.255.0",
+          "gateway": "192.168.10.1"
+        },
+        "gateway": {
+          "device": "R1",
+          "ip": "192.168.10.1",
+          "status": "reachable"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "ping_failure",
+          "description": "PC-01 cannot ping 192.168.10.1."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "PC-01 uses 192.168.10.20/24 with gateway 192.168.10.1."
+        },
+        {
+          "device": "PC-01",
+          "type": "connectivity_test",
+          "description": "Ping to 192.168.10.1 times out."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "interface_down",
+          "physical_link",
+          "wrong_vlan",
+          "gateway_configuration"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "reason": "Verify that the router interface providing the default gateway is operational."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "output_contains": "192.168.10.1",
+          "interpretation": "Inspect whether the gateway interface is operational."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "unreachable_default_gateway",
+        "confidence": "medium",
+        "explanation": "The endpoint has the expected gateway configured but cannot reach it, so the local path between the endpoint and gateway requires investigation."
+      },
+
+      "recommended_fix": {
+        "description": "Correct the local connectivity problem identified during investigation, such as an interface, VLAN, or physical-link issue.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 successfully pings 192.168.10.1 before remote-network connectivity is tested."
+      }
+    },
+    {
+      "case_id": "VLAN-001",
+      "title": "Missing VLAN",
+      "domain": "VLANs",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 cannot communicate with other devices that should be in the same VLAN.",
+        "topology": "PC-01 -> SW-01",
+        "devices": ["PC-01", "SW-01"]
+      },
+
+      "expected_state": {
+        "vlan": {
+          "id": 10,
+          "name": "USERS",
+          "status": "active"
+        },
+        "port": {
+          "device": "SW-01",
+          "name": "Fa0/5",
+          "vlan": 10
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot communicate with other devices that should be in VLAN 10."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "missing_vlan",
+          "wrong_access_vlan",
+          "interface",
+          "physical_link"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "reason": "Determine whether the required VLAN exists and which ports are assigned to it."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "output_contains": "VLAN 10 absent",
+          "interpretation": "The required VLAN does not exist on the switch."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_vlan",
+        "confidence": "high",
+        "explanation": "VLAN 10 is required by the topology but is absent from the switch VLAN table."
+      },
+
+      "recommended_fix": {
+        "description": "Create VLAN 10 and assign the appropriate switch ports according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "VLAN 10 exists on SW-01, the endpoint port belongs to VLAN 10, and PC-01 can communicate with the intended VLAN members."
+      }
+    },
+    {
+      "case_id": "VLAN-002",
+      "title": "Wrong Access VLAN",
+      "domain": "VLANs",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 has a valid IP configuration but cannot communicate with devices in its intended VLAN.",
+        "topology": "PC-01 -> SW-01",
+        "devices": ["PC-01", "SW-01"]
+      },
+
+      "expected_state": {
+        "vlan": {
+          "id": 10,
+          "name": "USERS"
+        },
+        "port": {
+          "device": "SW-01",
+          "name": "Fa0/6",
+          "mode": "access",
+          "vlan": 10
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot communicate with devices in its intended VLAN."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "SW-01",
+          "type": "configuration",
+          "description": "PC-01 is connected to Fa0/6, which is assigned to VLAN 20 instead of VLAN 10."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "wrong_access_vlan",
+          "missing_vlan",
+          "interface",
+          "ip_address"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "reason": "Identify the VLAN assignment of the switch port connected to PC-01."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "output_contains": "Fa0/6 under VLAN 20",
+          "interpretation": "The endpoint port belongs to the wrong VLAN."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wrong_access_vlan",
+        "confidence": "high",
+        "explanation": "The PC's access port is assigned to VLAN 20 even though the endpoint is intended to belong to VLAN 10."
+      },
+
+      "recommended_fix": {
+        "description": "Assign Fa0/6 to VLAN 10 according to the intended network design.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "Fa0/6 is an access port in VLAN 10 and PC-01 can communicate with the intended VLAN 10 devices."
+      }
+    },
+    {
+      "case_id": "VLAN-003",
+      "title": "Incorrect Access or Trunk Port Mode",
+      "domain": "VLANs",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Devices across an inter-switch connection cannot communicate across the expected VLAN path.",
+        "topology": "SW-01 -> SW-02",
+        "devices": ["SW-01", "SW-02"]
+      },
+
+      "expected_state": {
+        "link": {
+          "device_a": "SW-01",
+          "device_b": "SW-02",
+          "interface_a": "Fa0/24",
+          "interface_b": "Fa0/24",
+          "mode": "trunk"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "SW-01",
+          "type": "symptom",
+          "description": "The inter-switch link does not carry the expected VLAN traffic."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "SW-01",
+          "type": "switchport_status",
+          "description": "The inter-switch interface is operating as an access port."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_port_mode",
+          "trunk_not_operational",
+          "vlan_not_allowed",
+          "wrong_vlan"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces switchport",
+          "reason": "Determine whether the inter-switch interface is configured and operating as the intended trunk."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces switchport",
+          "output_contains": "Administrative Mode: static access",
+          "interpretation": "The inter-switch interface is configured as an access port instead of a trunk."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_port_mode",
+        "confidence": "high",
+        "explanation": "The inter-switch link is expected to carry multiple VLANs but is operating in access mode."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the inter-switch link as a trunk according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The inter-switch interface operates as a trunk and the required VLAN traffic crosses the link."
+      }
+    },
+    {
+      "case_id": "VLAN-004",
+      "title": "Incorrect VLAN Assignment Across Devices",
+      "domain": "VLANs",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Two hosts that should be in the same VLAN cannot communicate even though both have valid IP configurations.",
+        "topology": "PC-01 -> SW-01 -> SW-02 -> PC-02",
+        "devices": ["PC-01", "SW-01", "SW-02", "PC-02"]
+      },
+
+      "expected_state": {
+        "vlan": {
+          "id": 10,
+          "name": "USERS"
+        },
+        "ports": [
+          {
+            "device": "SW-01",
+            "name": "Fa0/5",
+            "vlan": 10
+          },
+          {
+            "device": "SW-02",
+            "name": "Fa0/5",
+            "vlan": 10
+          }
+        ]
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 cannot communicate with PC-02 even though both should belong to VLAN 10."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "SW-01",
+          "type": "vlan_assignment",
+          "description": "PC-01's access port Fa0/5 belongs to VLAN 10."
+        },
+        {
+          "device": "SW-02",
+          "type": "vlan_assignment",
+          "description": "PC-02's access port Fa0/5 belongs to VLAN 20."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_vlan_assignment",
+          "trunk",
+          "missing_vlan",
+          "interface"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "reason": "Identify the VLAN assignment of the endpoint port and compare it with the intended topology."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "output_contains": "Fa0/5 under VLAN 10",
+          "interpretation": "PC-01 is assigned to VLAN 10."
+        },
+        {
+          "device": "SW-02",
+          "command": "show vlan brief",
+          "output_contains": "Fa0/5 under VLAN 20",
+          "interpretation": "PC-02 is assigned to VLAN 20 instead of VLAN 10."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_vlan_assignment",
+        "confidence": "high",
+        "explanation": "The endpoint ports are assigned to different VLANs even though both devices are intended to belong to VLAN 10."
+      },
+
+      "recommended_fix": {
+        "description": "Assign both endpoint ports to VLAN 10 according to the intended topology and verify that the inter-switch trunk carries VLAN 10.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "Both endpoint ports belong to VLAN 10, VLAN 10 is carried between the switches, and PC-01 can communicate with PC-02."
+      }
+    },
+    {
+      "case_id": "TRK-001",
+      "title": "Trunk Not Operational",
+      "domain": "Trunking",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Devices in the same VLAN but connected to different switches cannot communicate.",
+        "topology": "PC-01 -> SW-01 -> SW-02 -> PC-02",
+        "devices": ["PC-01", "SW-01", "SW-02", "PC-02"]
+      },
+
+      "expected_state": {
+        "vlan": {
+          "id": 10,
+          "name": "USERS"
+        },
+        "link": {
+          "device_a": "SW-01",
+          "device_b": "SW-02",
+          "interface_a": "Fa0/24",
+          "interface_b": "Fa0/24",
+          "mode": "trunk",
+          "status": "trunking"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "connectivity_test",
+          "description": "PC-01 cannot communicate with PC-02 even though both should belong to VLAN 10."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "trunk_not_operational",
+          "vlan_not_allowed",
+          "wrong_access_vlan",
+          "native_vlan_mismatch"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "reason": "Determine whether the inter-switch link is operating as a trunk and whether the expected VLAN is being carried."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "output_contains": "not-trunking",
+          "interpretation": "The inter-switch interface is not operating as a trunk."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "trunk_not_operational",
+        "confidence": "high",
+        "explanation": "The inter-switch link expected to carry VLAN 10 is not operating as a trunk."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the inter-switch link according to the intended topology so that it operates as a trunk.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The inter-switch link reports trunking and VLAN 10 is carried between SW-01 and SW-02."
+      }
+    },
+    {
+      "case_id": "TRK-002",
+      "title": "VLAN Not Allowed on Trunk",
+      "domain": "Trunking",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Devices in VLAN 20 can communicate when connected to the same switch but cannot communicate when separated across two switches.",
+        "topology": "PC-01 -> SW-01 -> SW-02 -> PC-02",
+        "devices": ["PC-01", "SW-01", "SW-02", "PC-02"]
+      },
+
+      "expected_state": {
+        "vlan": {
+          "id": 20,
+          "name": "SERVERS"
+        },
+        "link": {
+          "device_a": "SW-01",
+          "device_b": "SW-02",
+          "interface_a": "Fa0/24",
+          "interface_b": "Fa0/24",
+          "mode": "trunk",
+          "allowed_vlans": [10, 20, 30]
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "connectivity_test",
+          "description": "PC-01 cannot communicate with PC-02 across the inter-switch link."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "vlan_not_allowed",
+          "trunk_not_operational",
+          "wrong_access_vlan",
+          "missing_vlan"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "reason": "Check whether VLAN 20 is included in the trunk's allowed VLAN list."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "output_contains": "Vlans allowed on trunk 10,30",
+          "interpretation": "VLAN 20 is missing from the trunk's allowed VLAN list."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "vlan_not_allowed_on_trunk",
+        "confidence": "high",
+        "explanation": "The trunk is operational, but VLAN 20 is filtered because it is not included in the allowed VLAN list."
+      },
+
+      "recommended_fix": {
+        "description": "Allow VLAN 20 on the appropriate trunk according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "VLAN 20 appears in the trunk's allowed VLAN list and VLAN 20 endpoints can communicate across the switches."
+      }
+    },
+    {
+      "case_id": "TRK-003",
+      "title": "Native VLAN Mismatch",
+      "domain": "Trunking",
+      "severity": "medium",
+
+      "scenario": {
+        "symptom": "An inter-switch trunk is operational but native-VLAN-related connectivity problems or warnings occur.",
+        "topology": "SW-01 -> SW-02",
+        "devices": ["SW-01", "SW-02"]
+      },
+
+      "expected_state": {
+        "link": {
+          "device_a": "SW-01",
+          "device_b": "SW-02",
+          "interface_a": "Fa0/24",
+          "interface_b": "Fa0/24",
+          "mode": "trunk",
+          "native_vlan": 99
+        }
+      },
+
+      "observations": [
+        {
+          "device": "SW-01",
+          "type": "trunk_warning",
+          "description": "The inter-switch trunk has a native VLAN mismatch."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "native_vlan_mismatch",
+          "trunk_not_operational",
+          "vlan_not_allowed"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "reason": "Compare the native VLAN configured on the local trunk with the intended topology and the remote switch."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "output_contains": "Native VLAN: 99",
+          "interpretation": "SW-01 uses native VLAN 99; the remote side must be checked to confirm the native VLAN matches."
+        },
+        {
+          "device": "SW-02",
+          "command": "show interfaces trunk",
+          "output_contains": "Native VLAN: 1",
+          "interpretation": "SW-02 uses native VLAN 1, creating a native VLAN mismatch."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "native_vlan_mismatch",
+        "confidence": "high",
+        "explanation": "The two ends of the trunk use different native VLANs."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the same intended native VLAN on both ends of the trunk.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "Both ends of the trunk report the same native VLAN and the native-VLAN mismatch is resolved."
+      }
+    },
+    {
+      "case_id": "RTR-001",
+      "title": "Missing Route",
+      "domain": "Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "PC-01 can reach its default gateway but cannot reach Server-01 on another network.",
+        "topology": "PC-01 -> SW-01 -> R1 -> Server-01",
+        "devices": ["PC-01", "SW-01", "R1", "Server-01"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "ip": "192.168.10.20",
+          "gateway": "192.168.10.1"
+        },
+        "destination": {
+          "device": "Server-01",
+          "network": "192.168.30.0/24"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "PC-01 can reach its default gateway but cannot reach Server-01."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "missing_route",
+          "incorrect_route",
+          "ACL",
+          "interface"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip route",
+          "reason": "Determine whether R1 has a route to the destination network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip route",
+          "output_contains": "192.168.30.0/24 absent",
+          "interpretation": "R1 does not have a route to the destination network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_route",
+        "confidence": "high",
+        "explanation": "The routing table does not contain a route to 192.168.30.0/24."
+      },
+
+      "recommended_fix": {
+        "description": "Configure or restore the appropriate route to 192.168.30.0/24 according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "R1 has a valid route to 192.168.30.0/24 and PC-01 can reach Server-01."
+      }
+    },
+    {
+      "case_id": "RTR-002",
+      "title": "Incorrect Route",
+      "domain": "Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "Traffic reaches R1 but is forwarded along the wrong path toward the destination network.",
+        "topology": "PC-01 -> R1 -> R2 -> Server-01",
+        "devices": ["PC-01", "R1", "R2", "Server-01"]
+      },
+
+      "expected_state": {
+        "destination": {
+          "network": "192.168.30.0/24"
+        },
+        "route": {
+          "device": "R1",
+          "next_hop": "192.168.40.2"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "Traffic toward the remote network does not reach Server-01."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_route",
+          "incorrect_next_hop",
+          "missing_route",
+          "ACL"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip route 192.168.30.0",
+          "reason": "Inspect the route selected by R1 for the destination network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip route 192.168.30.0",
+          "output_contains": "via 192.168.40.9",
+          "interpretation": "R1 has a route, but its next hop does not match the intended topology."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_route",
+        "confidence": "high",
+        "explanation": "R1 has a route to the destination network, but the route points traffic along an incorrect path."
+      },
+
+      "recommended_fix": {
+        "description": "Correct the routing configuration so traffic uses the intended path to 192.168.30.0/24.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "R1 selects the intended route and traffic reaches Server-01."
+      }
+    },
+    {
+      "case_id": "RTR-003",
+      "title": "Missing Default Route",
+      "domain": "Routing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Internal networks are reachable, but traffic to unknown or external networks fails.",
+        "topology": "LAN -> R1 -> Upstream Router",
+        "devices": ["LAN", "R1", "Upstream-Router"]
+      },
+
+      "expected_state": {
+        "router": {
+          "device": "R1",
+          "default_route": "0.0.0.0/0",
+          "next_hop": "192.168.100.1"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "R1",
+          "type": "connectivity_test",
+          "description": "R1 can reach known internal networks but cannot forward traffic toward unknown or external networks."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "missing_default_route",
+          "missing_route",
+          "incorrect_next_hop",
+          "interface"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip route",
+          "reason": "Determine whether R1 has a default route for destinations that are not otherwise known."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip route",
+          "output_contains": "0.0.0.0/0 absent",
+          "interpretation": "R1 has no default route."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_default_route",
+        "confidence": "high",
+        "explanation": "R1 has no 0.0.0.0/0 route for forwarding traffic toward unknown networks."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the appropriate default route toward the upstream router according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "R1 has a valid default route and can forward traffic toward destinations not present as more specific routes."
+      }
+    },
+    {
+      "case_id": "RTR-004",
+      "title": "Incorrect Next Hop",
+      "domain": "Routing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "A route exists for the destination network, but packets do not reach the destination.",
+        "topology": "PC-01 -> R1 -> R2 -> Server-01",
+        "devices": ["PC-01", "R1", "R2", "Server-01"]
+      },
+
+      "expected_state": {
+        "destination": {
+          "network": "192.168.30.0/24"
+        },
+        "route": {
+          "device": "R1",
+          "next_hop": "192.168.20.2"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "symptom",
+          "description": "The destination network is known but is unreachable."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_next_hop",
+          "incorrect_route",
+          "missing_route",
+          "ACL"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip route 192.168.30.0",
+          "reason": "Inspect the configured next hop for the destination network and compare it with the intended topology."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip route 192.168.30.0",
+          "output_contains": "via 192.168.20.3",
+          "interpretation": "The configured next hop is 192.168.20.3, while the intended next hop is 192.168.20.2."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_next_hop",
+        "confidence": "high",
+        "explanation": "The route to 192.168.30.0/24 points to the wrong next-hop address."
+      },
+
+      "recommended_fix": {
+        "description": "Correct the route so that it uses the intended next-hop address 192.168.20.2.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The route points to the correct next hop and traffic reaches the destination network."
+      }
+    },
+    {
+      "case_id": "RTR-005",
+      "title": "Routing Loop",
+      "domain": "Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "Traffic toward a destination network does not arrive and repeated routing behavior is observed.",
+        "topology": "PC-01 -> R1 <-> R2 -> Destination Network",
+        "devices": ["PC-01", "R1", "R2"]
+      },
+
+      "expected_state": {
+        "routing": {
+          "destination": "192.168.30.0/24",
+          "expected_behavior": "Traffic should progress toward the destination without returning to the previous router."
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "path_test",
+          "description": "Traffic repeatedly traverses R1 and R2 instead of progressing toward the destination."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "routing_loop",
+          "incorrect_route",
+          "incorrect_next_hop",
+          "missing_route"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "traceroute 192.168.30.50",
+          "reason": "Determine whether packets repeatedly traverse the same routers instead of progressing toward the destination."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "traceroute 192.168.30.50",
+          "output_contains": "repeated router hops",
+          "interpretation": "The path repeatedly returns to previously visited routers, indicating a possible routing loop."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "routing_loop",
+        "confidence": "high",
+        "explanation": "Incorrect routing information causes traffic for the destination to circulate between routers."
+      },
+
+      "recommended_fix": {
+        "description": "Inspect and correct the routing entries on the involved routers so the destination has a valid forward path without returning traffic to the previous router.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "Traceroute progresses toward the destination without repeated router hops and the destination becomes reachable."
+      }
+    },
+    {
+      "case_id": "IVR-001",
+      "title": "Router-on-a-Stick Subinterface Missing",
+      "domain": "Inter-VLAN Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "Devices in VLAN 10 can communicate with each other, but they cannot communicate with devices in VLAN 20.",
+        "topology": "VLAN 10 / VLAN 20 -> SW-01 -> trunk -> R1",
+        "devices": ["SW-01", "R1", "VLAN-10-Host", "VLAN-20-Host"]
+      },
+
+      "expected_state": {
+        "subinterfaces": [
+          {
+            "device": "R1",
+            "interface": "GigabitEthernet0/0.10",
+            "vlan": 10,
+            "ip": "192.168.10.1"
+          },
+          {
+            "device": "R1",
+            "interface": "GigabitEthernet0/0.20",
+            "vlan": 20,
+            "ip": "192.168.20.1"
+          }
+        ]
+      },
+
+      "observations": [
+        {
+          "device": "VLAN-10-Host",
+          "type": "connectivity_test",
+          "description": "VLAN 10 hosts can communicate locally but inter-VLAN communication with VLAN 20 fails."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "missing_subinterface",
+          "incorrect_vlan_tag",
+          "trunk",
+          "routing"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "reason": "Determine whether R1 has operational subinterfaces for all required VLANs."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "output_contains": "GigabitEthernet0/0.10",
+          "interpretation": "The VLAN 10 subinterface exists."
+        },
+        {
+          "device": "R1",
+          "command": "show ip interface brief",
+          "output_contains": "GigabitEthernet0/0.20 absent",
+          "interpretation": "The required VLAN 20 subinterface is missing."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_router_subinterface",
+        "confidence": "high",
+        "explanation": "R1 does not have the required subinterface for VLAN 20, so it cannot provide Layer 3 gateway functionality for that VLAN."
+      },
+
+      "recommended_fix": {
+        "description": "Create and configure the VLAN 20 router subinterface with the appropriate 802.1Q encapsulation and gateway address.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The VLAN 20 subinterface is operational, hosts can reach 192.168.20.1, and inter-VLAN communication succeeds."
+      }
+    },
+    {
+      "case_id": "IVR-002",
+      "title": "Incorrect 802.1Q VLAN Tag",
+      "domain": "Inter-VLAN Routing",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "VLAN 20 hosts cannot communicate through the router even though a router subinterface is configured.",
+        "topology": "VLAN 20 -> SW-01 -> trunk -> R1",
+        "devices": ["SW-01", "R1", "VLAN-20-Host"]
+      },
+
+      "expected_state": {
+        "subinterface": {
+          "device": "R1",
+          "interface": "GigabitEthernet0/0.20",
+          "vlan": 20,
+          "ip": "192.168.20.1"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "VLAN-20-Host",
+          "type": "connectivity_test",
+          "description": "VLAN 20 host cannot reach its router gateway."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_vlan_tag",
+          "missing_subinterface",
+          "trunk",
+          "gateway"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show running-config",
+          "reason": "Inspect the router subinterface and verify that its 802.1Q VLAN tag matches VLAN 20."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "interface GigabitEthernet0/0.20",
+          "interpretation": "The expected VLAN 20 subinterface exists."
+        },
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "encapsulation dot1Q 30",
+          "interpretation": "The subinterface is tagged for VLAN 30 instead of VLAN 20."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_8021q_vlan_tag",
+        "confidence": "high",
+        "explanation": "The VLAN 20 subinterface uses an 802.1Q tag for VLAN 30, so VLAN 20 traffic is not mapped to the intended Layer 3 interface."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the subinterface with the correct 802.1Q VLAN ID of 20.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The subinterface uses VLAN 20 tagging and VLAN 20 hosts can reach their gateway."
+      }
+    },
+    {
+      "case_id": "IVR-003",
+      "title": "Trunk Does Not Carry Required VLAN to Router",
+      "domain": "Inter-VLAN Routing",
+      "severity": "critical",
+
+      "scenario": {
+        "symptom": "VLAN 10 hosts can reach their gateway, but VLAN 20 hosts cannot reach their gateway.",
+        "topology": "VLAN 10 / VLAN 20 -> SW-01 -> trunk -> R1",
+        "devices": ["SW-01", "R1", "VLAN-10-Host", "VLAN-20-Host"]
+      },
+
+      "expected_state": {
+        "trunk": {
+          "device": "SW-01",
+          "interface": "Gi0/1",
+          "mode": "trunk",
+          "allowed_vlans": [10, 20]
+        },
+        "router": {
+          "device": "R1",
+          "required_vlans": [10, 20]
+        }
+      },
+
+      "observations": [
+        {
+          "device": "VLAN-10-Host",
+          "type": "connectivity_test",
+          "description": "VLAN 10 host can reach 192.168.10.1."
+        },
+        {
+          "device": "VLAN-20-Host",
+          "type": "connectivity_test",
+          "description": "VLAN 20 host cannot reach 192.168.20.1."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "vlan_not_allowed_on_trunk",
+          "incorrect_vlan_tag",
+          "missing_subinterface",
+          "trunk_not_operational"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "reason": "Determine whether VLAN 20 is being carried from the switch to the router."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show interfaces trunk",
+          "output_contains": "Vlans allowed on trunk 10",
+          "interpretation": "The trunk allows VLAN 10 but does not allow VLAN 20."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "vlan_not_carried_to_router",
+        "confidence": "high",
+        "explanation": "The switch-to-router trunk does not allow VLAN 20, preventing VLAN 20 traffic from reaching the router subinterface."
+      },
+
+      "recommended_fix": {
+        "description": "Allow VLAN 20 on the switch-to-router trunk according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "VLAN 20 is allowed on the trunk, the VLAN 20 host can reach 192.168.20.1, and inter-VLAN routing works."
+      }
+    },
+    {
+      "case_id": "DHCP-001",
+      "title": "DHCP Pool Missing",
+      "domain": "DHCP",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 does not receive an IP address automatically.",
+        "topology": "PC-01 -> SW-01 -> R1",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "dhcp": {
+          "device": "R1",
+          "network": "192.168.10.0/24",
+          "gateway": "192.168.10.1"
+        },
+        "client": {
+          "device": "PC-01",
+          "addressing": "DHCP"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "dhcp_failure",
+          "description": "PC-01 does not receive an IP address through DHCP."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "dhcp_pool_missing",
+          "dhcp_service",
+          "vlan",
+          "physical_link"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show running-config",
+          "reason": "Inspect the router configuration to determine whether a DHCP pool exists for the client network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "no DHCP pool for 192.168.10.0/24",
+          "interpretation": "The router does not have a DHCP pool configured for the client network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "dhcp_pool_missing",
+        "confidence": "high",
+        "explanation": "No DHCP pool exists for the 192.168.10.0/24 client network."
+      },
+
+      "recommended_fix": {
+        "description": "Create the appropriate DHCP pool with the correct network, subnet mask, and default gateway.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 successfully obtains an IP address from the expected DHCP network."
+      }
+    },
+    {
+      "case_id": "DHCP-002",
+      "title": "Incorrect DHCP Default Gateway",
+      "domain": "DHCP",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 receives an IP address automatically but cannot communicate with devices outside its local network.",
+        "topology": "PC-01 -> SW-01 -> R1 -> Remote Network",
+        "devices": ["PC-01", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "dhcp": {
+          "device": "R1",
+          "network": "192.168.10.0/24",
+          "default_gateway": "192.168.10.1"
+        },
+        "client": {
+          "device": "PC-01",
+          "ip_network": "192.168.10.0/24",
+          "gateway": "192.168.10.1"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "connectivity_test",
+          "description": "PC-01 has an IP address but cannot reach remote networks."
+        }
+      ],
+
+      "evidence": [
+        {
+          "device": "PC-01",
+          "type": "configuration",
+          "description": "The DHCP-provided default gateway is 192.168.20.1 instead of 192.168.10.1."
+        }
+      ],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_dhcp_gateway",
+          "routing",
+          "acl",
+          "interface"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show running-config",
+          "reason": "Inspect the DHCP pool and verify that the configured default gateway matches the client network."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "default-router 192.168.20.1",
+          "interpretation": "The DHCP pool provides a gateway from the wrong network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_dhcp_default_gateway",
+        "confidence": "high",
+        "explanation": "The DHCP pool provides 192.168.20.1 as the gateway even though the clients belong to 192.168.10.0/24 and should use 192.168.10.1."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the DHCP pool to provide the correct default gateway 192.168.10.1.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "After renewing the DHCP lease, PC-01 receives 192.168.10.1 as its default gateway and can reach remote networks."
+      }
+    },
+    {
+      "case_id": "DHCP-003",
+      "title": "DHCP Address Pool Exhausted",
+      "domain": "DHCP",
+      "severity": "medium",
+
+      "scenario": {
+        "symptom": "New clients cannot obtain an IP address through DHCP while existing clients continue to work.",
+        "topology": "Multiple Clients -> SW-01 -> R1",
+        "devices": ["PC-01", "PC-02", "PC-03", "R1"]
+      },
+
+      "expected_state": {
+        "dhcp": {
+          "device": "R1",
+          "network": "192.168.10.0/24",
+          "available_addresses": "sufficient for active clients"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-03",
+          "type": "dhcp_failure",
+          "description": "PC-03 cannot obtain an IP address while existing clients continue to operate."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "dhcp_pool_exhausted",
+          "dhcp_service",
+          "vlan",
+          "physical_link"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip dhcp pool",
+          "reason": "Determine the total and leased DHCP addresses and whether the pool has been exhausted."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip dhcp pool",
+          "output_contains": "Leased addresses: 11",
+          "interpretation": "All 11 available addresses in the DHCP pool are currently leased."
+        },
+        {
+          "device": "R1",
+          "command": "show ip dhcp pool",
+          "output_contains": "Total addresses: 11",
+          "interpretation": "The DHCP pool has no remaining addresses for new clients."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "dhcp_pool_exhausted",
+        "confidence": "high",
+        "explanation": "All addresses available in the DHCP pool are currently leased, preventing new clients from obtaining an address."
+      },
+
+      "recommended_fix": {
+        "description": "Expand or redesign the DHCP address pool according to the intended network design, or release stale leases where appropriate.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "A new client can obtain a valid DHCP lease from the available address pool."
+      }
+    },
+    {
+      "case_id": "ACL-001",
+      "title": "ACL Blocking Intended Traffic",
+      "domain": "ACL",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "PC-01 can reach its gateway but cannot reach Server-01.",
+        "topology": "PC-01 -> R1 -> Server-01",
+        "devices": ["PC-01", "R1", "Server-01"]
+      },
+
+      "expected_state": {
+        "source": {
+          "device": "PC-01",
+          "network": "192.168.10.0/24"
+        },
+        "destination": {
+          "device": "Server-01",
+          "ip": "192.168.30.50",
+          "network": "192.168.30.0/24"
+        },
+        "policy": "Traffic from 192.168.10.0/24 to 192.168.30.0/24 should be permitted."
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "connectivity_test",
+          "description": "PC-01 can reach its gateway but cannot reach Server-01."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "acl_blocking_traffic",
+          "routing",
+          "vlan",
+          "interface"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show access-lists",
+          "reason": "Determine whether an ACL is explicitly denying traffic between the client and server networks."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show access-lists",
+          "output_contains": "deny ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255",
+          "interpretation": "The ACL explicitly denies traffic from the client network to the server network."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "acl_blocking_intended_traffic",
+        "confidence": "high",
+        "explanation": "An ACL contains a deny rule that blocks traffic which should be permitted according to the intended policy."
+      },
+
+      "recommended_fix": {
+        "description": "Modify the ACL according to the intended security policy so that legitimate traffic is permitted.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The intended traffic is permitted and PC-01 can reach Server-01."
+      }
+    },
+    {
+      "case_id": "ACL-002",
+      "title": "ACL Applied to Wrong Interface or Direction",
+      "domain": "ACL",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "A network service works from one direction but fails when traffic enters or leaves a particular interface.",
+        "topology": "Client Network -> R1 -> Server Network",
+        "devices": ["Client-Network", "R1", "Server-Network"]
+      },
+
+      "expected_state": {
+        "acl": {
+          "name": "USERS-FILTER",
+          "interface": "GigabitEthernet0/0",
+          "direction": "in"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "R1",
+          "type": "configuration",
+          "description": "The ACL is applied to the wrong interface or in the wrong direction."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "acl_interface_direction",
+          "acl_rule",
+          "routing",
+          "interface"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show running-config",
+          "reason": "Determine which ACL is applied to which interface and in which direction."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "ip access-group USERS-FILTER out",
+          "interpretation": "The ACL is applied outbound even though the intended policy requires inbound filtering."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "acl_wrong_interface_or_direction",
+        "confidence": "high",
+        "explanation": "The ACL is attached to an incorrect interface or applied in the wrong direction relative to the intended security policy."
+      },
+
+      "recommended_fix": {
+        "description": "Apply the ACL to the intended interface and direction according to the network security policy.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The ACL is applied at the intended enforcement point and traffic follows the expected security policy."
+      }
+    },
+    {
+      "case_id": "ACL-003",
+      "title": "ACL Rule Order Causes Unexpected Denial",
+      "domain": "ACL",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "HTTPS traffic should be permitted, but the connection is denied even though a permit rule exists.",
+        "topology": "PC-01 -> R1 -> Server-01",
+        "devices": ["PC-01", "R1", "Server-01"]
+      },
+
+      "expected_state": {
+        "source": {
+          "network": "192.168.10.0/24"
+        },
+        "destination": {
+          "device": "Server-01",
+          "ip": "192.168.30.50",
+          "port": 443
+        },
+        "policy": "HTTPS traffic to Server-01 should be permitted."
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "application_failure",
+          "description": "The HTTPS connection to Server-01 fails."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "acl_rule_order",
+          "acl_blocking_traffic",
+          "server_service",
+          "routing"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show access-lists",
+          "reason": "Inspect ACL entries in evaluation order and determine which rule matches the HTTPS traffic first."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show access-lists",
+          "output_contains": "10 deny ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255",
+          "interpretation": "A broad deny rule appears before the specific HTTPS permit rule."
+        },
+        {
+          "device": "R1",
+          "command": "show access-lists",
+          "output_contains": "20 permit tcp 192.168.10.0 0.0.0.255 host 192.168.30.50 eq 443",
+          "interpretation": "The HTTPS permit rule exists but is evaluated after the broader deny rule."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "acl_rule_order",
+        "confidence": "high",
+        "explanation": "ACL entries are evaluated from top to bottom, so the broad deny rule matches before the specific HTTPS permit rule."
+      },
+
+      "recommended_fix": {
+        "description": "Reorder or modify the ACL entries according to the intended security policy.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "HTTPS traffic matches the intended permit rule while unrelated traffic remains subject to the intended restrictions."
+      }
+    },
+    {
+      "case_id": "ACL-004",
+      "title": "Required Return Traffic Blocked",
+      "domain": "ACL",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "A client connection appears to leave successfully, but the application session does not establish because return traffic is blocked.",
+        "topology": "PC-01 -> R1 -> Server-01 -> R1 -> PC-01",
+        "devices": ["PC-01", "R1", "Server-01"]
+      },
+
+      "expected_state": {
+        "connection": {
+          "source": "PC-01",
+          "destination": "Server-01",
+          "return_traffic_required": true
+        },
+        "policy": "Legitimate return traffic must be permitted."
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "application_failure",
+          "description": "The client initiates a connection but the application session does not establish."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "acl_return_traffic",
+          "acl_blocking_traffic",
+          "routing",
+          "server_service"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show access-lists",
+          "reason": "Determine whether ACL counters or deny entries indicate that required return traffic is being blocked."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show access-lists",
+          "output_contains": "deny",
+          "interpretation": "The ACL contains a deny condition matching traffic on the return path."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "acl_return_traffic_blocked",
+        "confidence": "medium",
+        "explanation": "The forward path is available, but the ACL blocks traffic required to complete the return path of the connection."
+      },
+
+      "recommended_fix": {
+        "description": "Adjust the ACL according to the intended security policy so that legitimate return traffic is permitted.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The required return traffic is permitted and the end-to-end application session establishes successfully."
+      }
+    },
+    {
+      "case_id": "NAT-001",
+      "title": "Missing NAT Translation",
+      "domain": "NAT",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "Internal clients can reach the router but cannot access an external network.",
+        "topology": "LAN -> R1 -> Internet",
+        "devices": ["LAN-Client", "R1", "External-Network"]
+      },
+
+      "expected_state": {
+        "nat": {
+          "device": "R1",
+          "inside_network": "192.168.10.0/24",
+          "translation_required": true
+        }
+      },
+
+      "observations": [
+        {
+          "device": "LAN-Client",
+          "type": "connectivity_test",
+          "description": "The client can reach its local gateway but cannot reach the external network."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": ["missing_nat", "routing", "acl", "interface"],
+        "next_command": {
+          "device": "R1",
+          "command": "show ip nat translations",
+          "reason": "Determine whether traffic from the inside network is being translated."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show ip nat translations",
+          "output_contains": "no translations for 192.168.10.0/24",
+          "interpretation": "No active NAT translation exists for the internal client traffic."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_nat_translation",
+        "confidence": "medium",
+        "explanation": "The internal client traffic is not producing a NAT translation, so the external network cannot receive traffic using the expected translated address."
+      },
+
+      "recommended_fix": {
+        "description": "Verify and configure the appropriate NAT policy for the inside network according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "A NAT translation is created when the internal client initiates external traffic and the connection succeeds."
+      }
+    },
+    {
+      "case_id": "NAT-002",
+      "title": "Incorrect NAT Inside or Outside Interface",
+      "domain": "NAT",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "NAT configuration exists, but internal traffic is not translated correctly.",
+        "topology": "LAN -> R1 -> WAN",
+        "devices": ["LAN-Client", "R1", "WAN"]
+      },
+
+      "expected_state": {
+        "nat": {
+          "device": "R1",
+          "inside_interface": "GigabitEthernet0/0",
+          "outside_interface": "GigabitEthernet0/1"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "LAN-Client",
+          "type": "connectivity_test",
+          "description": "The client cannot establish external connectivity even though NAT rules are configured."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "nat_interface_role",
+          "missing_nat",
+          "routing",
+          "acl"
+        ],
+        "next_command": {
+          "device": "R1",
+          "command": "show running-config",
+          "reason": "Inspect which router interfaces are configured as NAT inside and NAT outside."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "R1",
+          "command": "show running-config",
+          "output_contains": "ip nat inside on GigabitEthernet0/1",
+          "interpretation": "The LAN-facing interface has been incorrectly configured as NAT outside/inside."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_nat_interface_role",
+        "confidence": "high",
+        "explanation": "The NAT inside/outside roles do not match the intended LAN-to-WAN topology."
+      },
+
+      "recommended_fix": {
+        "description": "Correct the NAT inside and outside interface roles according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The LAN interface is configured as NAT inside, the WAN interface as NAT outside, and translations are created for external traffic."
+      }
+    },
+    {
+      "case_id": "DNS-001",
+      "title": "Incorrect DNS Server Configuration",
+      "domain": "DNS",
+      "severity": "medium",
+
+      "scenario": {
+        "symptom": "PC-01 can reach an IP address but cannot access the same service using its hostname.",
+        "topology": "PC-01 -> DNS-Server / Network",
+        "devices": ["PC-01", "DNS-Server"]
+      },
+
+      "expected_state": {
+        "client": {
+          "device": "PC-01",
+          "dns_server": "192.168.10.53"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "name_resolution_failure",
+          "description": "Hostname resolution fails while direct IP connectivity works."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_dns_server",
+          "dns_service",
+          "routing",
+          "connectivity"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "ipconfig /all",
+          "reason": "Verify which DNS server address is configured on the client."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "ipconfig /all",
+          "output_contains": "DNS Servers: 192.168.20.53",
+          "interpretation": "The client is configured to use the wrong DNS server."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "incorrect_dns_server",
+        "confidence": "high",
+        "explanation": "PC-01 is configured with a DNS server address that does not match the intended network service."
+      },
+
+      "recommended_fix": {
+        "description": "Configure the correct DNS server address on PC-01 or through the appropriate DHCP configuration.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "PC-01 uses the intended DNS server and can resolve the required hostname."
+      }
+    },
+    {
+      "case_id": "DNS-002",
+      "title": "DNS Record Missing or Incorrect",
+      "domain": "DNS",
+      "severity": "medium",
+
+      "scenario": {
+        "symptom": "Clients can reach the DNS server but a specific hostname does not resolve to the expected IP address.",
+        "topology": "PC-01 -> DNS-Server",
+        "devices": ["PC-01", "DNS-Server"]
+      },
+
+      "expected_state": {
+        "dns_record": {
+          "hostname": "server01.lab.local",
+          "address": "192.168.30.50"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "PC-01",
+          "type": "name_resolution_failure",
+          "description": "server01.lab.local does not resolve to the expected address."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "missing_dns_record",
+          "incorrect_dns_record",
+          "incorrect_dns_server",
+          "dns_service"
+        ],
+        "next_command": {
+          "device": "PC-01",
+          "command": "nslookup server01.lab.local",
+          "reason": "Determine whether DNS returns an address and whether the returned address matches the intended server."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "PC-01",
+          "command": "nslookup server01.lab.local",
+          "output_contains": "Non-existent domain",
+          "interpretation": "The DNS server does not have a matching record for the requested hostname."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "missing_or_incorrect_dns_record",
+        "confidence": "high",
+        "explanation": "The requested hostname does not have the expected DNS record."
+      },
+
+      "recommended_fix": {
+        "description": "Create or correct the DNS record so that the hostname resolves to the intended IP address.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "nslookup returns 192.168.30.50 for server01.lab.local."
+      }
+    },
+    {
+      "case_id": "WLAN-001",
+      "title": "Incorrect Wireless SSID or Authentication Configuration",
+      "domain": "Wireless",
+      "severity": "medium",
+
+      "scenario": {
+        "symptom": "A wireless client cannot connect to the expected network.",
+        "topology": "Wireless-Client -> Access-Point -> LAN",
+        "devices": ["Wireless-Client", "Access-Point", "LAN"]
+      },
+
+      "expected_state": {
+        "wireless": {
+          "ssid": "NetSage-Lab",
+          "authentication": "configured according to lab policy"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "Wireless-Client",
+          "type": "wireless_connection_failure",
+          "description": "The client cannot successfully associate with the expected wireless network."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "incorrect_ssid",
+          "authentication_mismatch",
+          "access_point",
+          "client_configuration"
+        ],
+        "next_command": {
+          "device": "Access-Point",
+          "command": "show running-config",
+          "reason": "Inspect the wireless network configuration and compare the SSID and authentication settings with the intended lab configuration."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "Access-Point",
+          "command": "show running-config",
+          "output_contains": "ssid NetSage-Lab",
+          "interpretation": "Verify that the expected SSID exists and inspect its associated authentication configuration."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wireless_configuration_mismatch",
+        "confidence": "medium",
+        "explanation": "The wireless client and access point configuration do not match the intended SSID or authentication settings."
+      },
+
+      "recommended_fix": {
+        "description": "Correct the SSID and authentication configuration so the client and access point use the intended wireless settings.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The client successfully associates with the intended SSID and receives normal network connectivity."
+      }
+    },
+    {
+      "case_id": "WLAN-002",
+      "title": "Wireless Client Connected but No Network Connectivity",
+      "domain": "Wireless",
+      "severity": "high",
+
+      "scenario": {
+        "symptom": "A wireless client successfully associates with the access point but cannot reach network resources.",
+        "topology": "Wireless-Client -> Access-Point -> Switch -> Router",
+        "devices": ["Wireless-Client", "Access-Point", "SW-01", "R1"]
+      },
+
+      "expected_state": {
+        "wireless": {
+          "client_association": "connected"
+        },
+        "network": {
+          "client_vlan": 20,
+          "gateway": "192.168.20.1"
+        }
+      },
+
+      "observations": [
+        {
+          "device": "Wireless-Client",
+          "type": "connectivity_test",
+          "description": "The client is associated with the wireless network but cannot reach its gateway or network resources."
+        }
+      ],
+
+      "evidence": [],
+
+      "troubleshooting_path": {
+        "initial_hypotheses": [
+          "wireless_vlan",
+          "access_point_uplink",
+          "dhcp",
+          "gateway"
+        ],
+        "next_command": {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "reason": "Verify that the VLAN used by the wireless network exists and that the access point's switch port is correctly assigned."
+        }
+      },
+
+      "expected_evidence": [
+        {
+          "device": "SW-01",
+          "command": "show vlan brief",
+          "output_contains": "VLAN 20 absent",
+          "interpretation": "The VLAN expected by the wireless network is missing from the switch."
+        }
+      ],
+
+      "diagnosis": {
+        "root_cause": "wireless_vlan_connectivity_failure",
+        "confidence": "high",
+        "explanation": "The wireless client is associated successfully, but the network VLAN required to carry its traffic is not available on the switch."
+      },
+
+      "recommended_fix": {
+        "description": "Create or restore the required wireless VLAN and configure the access point uplink according to the intended topology.",
+        "requires_human_approval": true
+      },
+
+      "verification": {
+        "expected_result": "The wireless VLAN is available, the client receives the expected network configuration, and it can reach its gateway."
+      }
+    }
+  ]
+}
