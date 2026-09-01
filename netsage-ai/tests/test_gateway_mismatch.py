@@ -89,12 +89,12 @@ def check_wrong_subnet_mask(
         }
 
     try:
-        actual_network = ipaddress.ip_network(
+        actual_network = ip_address.ip_network(
             f"{ip_address}/{actual_mask}",
             strict=False,
         )
 
-        expected_network = ipaddress.ip_network(
+        expected_network = ip_address.ip_network(
             f"{ip_address}/{expected_mask}",
             strict=False,
         )

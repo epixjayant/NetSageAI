@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --foreground: #111827;
+
+  --surface: #ffffff;
+  --surface-muted: #f1f3f5;
+
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --muted: #6b7280;
+  --muted-foreground: #4b5563;
+
+  --accent: #059669;
+  --accent-foreground: #ffffff;
+
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+
+  --code-background: #111827;
+  --code-foreground: #e5e7eb;
+
+  --focus-ring: #10b981;
+}
+
+.dark {
+  --background: #0b0f14;
+  --foreground: #f3f4f6;
+
+  --surface: #111820;
+  --surface-muted: #18212b;
+
+  --border: #26313d;
+  --border-strong: #344150;
+
+  --muted: #9ca3af;
+  --muted-foreground: #cbd5e1;
+
+  --accent: #34d399;
+  --accent-foreground: #062e20;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
+
+  --code-background: #070b10;
+  --code-foreground: #d1d5db;
+
+  --focus-ring: #34d399;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --color-code-background: var(--code-background);
+  --color-code-foreground: var(--code-foreground);
+
+  --color-focus-ring: var(--focus-ring);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
